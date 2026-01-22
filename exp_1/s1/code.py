@@ -8,7 +8,11 @@ print("Mithra Ravi - 24BAD070")
 
 # Load dataset
 
-df_ecom = pd.read_csv("data.csv", encoding="ISO-8859-1")
+df_ecom = pd.read_csv(
+    r"C:\Users\mithr\Downloads\data.csv\data.csv",
+    encoding="ISO-8859-1"
+)
+
  
 # Inspect dataset
 
