@@ -1,241 +1,198 @@
-# ==============================================
-# mithra ravi - 24bad070
-# SCENARIO 2 – DECISION TREE CLASSIFIER
-# Loan Approval Prediction
-# ==============================================
+# -----------------------------------------------
+# EXPT NO: 4
+# Scenario 2 – Gaussian Naïve Bayes
+# Name: Mithra Ravi
+# Roll No: 24BAD070
+# -----------------------------------------------
 
-# ================================
-# STEP 1: Import Required Libraries
-# ================================
-
-import pandas as pd
+# =========================
+# 1. Import Libraries
+# =========================
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import pandas as pd
 
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
-print("Mithra Ravi - 24BAD070")
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# ================================
-# STEP 2: Load Dataset
-# ================================
+# =========================
+# 2. Load Dataset
+# =========================
+iris = load_iris()
 
-df = pd.read_csv("loan.csv")
+X = iris.data          # Features
+y = iris.target        # Target labels
 
-print("\nFirst 5 Rows:")
+feature_names = iris.feature_names
+target_names = iris.target_names
+
+print("Feature Names:", feature_names)
+print("Target Classes:", target_names)
+print("Dataset Shape:", X.shape)
+
+# =========================
+# 3. Data Inspection
+# =========================
+
+# Convert to DataFrame for easier inspection
+df = pd.DataFrame(X, columns=feature_names)
+df['species'] = y
+
+print("\nFirst 5 rows:")
 print(df.head())
 
-print("\nDataset Shape:", df.shape)
+print("\nDataset Info:")
+print(df.info())
 
-print("\nMissing Values Before Handling:")
-print(df.isnull().sum())
+print("\nClass Distribution:")
+print(df['species'].value_counts())
 
+# =========================
+# 4. Feature Scaling
+# =========================
+from sklearn.preprocessing import StandardScaler
 
-# ================================
-# STEP 3: Data Preprocessing
-# ================================
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-# Drop Loan_ID (not useful for prediction)
-df.drop("Loan_ID", axis=1, inplace=True)
+print("\nFeature Scaling Completed")
 
-# Fill numerical columns with median
-df['LoanAmount'] = df['LoanAmount'].fillna(df['LoanAmount'].median())
-df['Loan_Amount_Term'] = df['Loan_Amount_Term'].fillna(df['Loan_Amount_Term'].median())
-df['Credit_History'] = df['Credit_History'].fillna(df['Credit_History'].median())
-
-# Fill categorical columns with mode
-categorical_cols = ['Gender', 'Married', 'Dependents', 'Self_Employed']
-
-for col in categorical_cols:
-    df[col] = df[col].fillna(df[col].mode()[0])
-
-print("\nMissing Values After Handling:")
-print(df.isnull().sum())
-
-
-# ================================
-# Encode Categorical Variables
-# ================================
-
-le = LabelEncoder()
-
-categorical_cols = ['Gender', 'Married', 'Dependents',
-                    'Education', 'Self_Employed',
-                    'Property_Area', 'Loan_Status']
-
-for col in categorical_cols:
-    df[col] = le.fit_transform(df[col])
-
-print("\nDataset After Encoding:")
-print(df.head())
-
-
-# ================================
-# Select Required Features
-# ================================
-
-features = ['ApplicantIncome', 'LoanAmount',
-            'Credit_History', 'Education',
-            'Property_Area']
-
-X = df[features]
-y = df['Loan_Status']
-
-print("\nFeature Matrix Shape:", X.shape)
-print("Target Vector Shape:", y.shape)
-
-
-# ================================
-# STEP 4: Train-Test Split
-# ================================
+# =========================
+# Train-Test Split
+# =========================
+from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-print("\nTraining Set Shape:", X_train.shape)
-print("Testing Set Shape:", X_test.shape)
-
-
-# ================================
-# STEP 5: Train Decision Tree
-# ================================
-
-dt = DecisionTreeClassifier(random_state=42)
-dt.fit(X_train, y_train)
-
-print("\nDecision Tree Model Trained")
-
-
-# ================================
-# STEP 6: Predictions
-# ================================
-
-y_pred = dt.predict(X_test)
-
-print("\nPredicted Loan Status:")
-print(y_pred)
-
-
-# ================================
-# STEP 7: Model Evaluation
-# ================================
-
-print("\nModel Evaluation:")
-print("Accuracy:", accuracy_score(y_test, y_pred))
-
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
-
-# ================================
-# STEP 9: Feature Importance
-# ================================
-
-import pandas as pd
-
-feature_importance = pd.Series(
-    dt.feature_importances_,
-    index=X.columns
-).sort_values(ascending=False)
-
-print("\nFeature Importance:")
-print(feature_importance)
-
-# Plot Feature Importance
-plt.figure()
-feature_importance.plot(kind='bar')
-plt.title("Feature Importance")
-plt.ylabel("Importance Score")
-plt.show()
-
-# ================================
-# STEP 10: Detect Overfitting
-# ================================
-
-train_accuracy = accuracy_score(y_train, dt.predict(X_train))
-test_accuracy = accuracy_score(y_test, dt.predict(X_test))
-
-print("\nTraining Accuracy:", train_accuracy)
-print("Testing Accuracy:", test_accuracy)
-
-# ================================
-# STEP 11: Compare Shallow vs Deep Tree
-# ================================
-
-# Shallow Tree
-dt_shallow = DecisionTreeClassifier(max_depth=3, random_state=42)
-dt_shallow.fit(X_train, y_train)
-
-shallow_train_acc = accuracy_score(y_train, dt_shallow.predict(X_train))
-shallow_test_acc = accuracy_score(y_test, dt_shallow.predict(X_test))
-
-print("\nShallow Tree (max_depth=3)")
-print("Training Accuracy:", shallow_train_acc)
-print("Testing Accuracy:", shallow_test_acc)
-
-# Deep Tree (already trained as dt)
-deep_train_acc = accuracy_score(y_train, dt.predict(X_train))
-deep_test_acc = accuracy_score(y_test, dt.predict(X_test))
-
-print("\nDeep Tree (No Depth Limit)")
-print("Training Accuracy:", deep_train_acc)
-print("Testing Accuracy:", deep_test_acc)
-
-# Regularized Decision Tree
-dt_regularized = DecisionTreeClassifier(
-    max_depth=4,
-    min_samples_split=10,
-    min_samples_leaf=5,
+    X_scaled, y,
+    test_size=0.2,
     random_state=42
 )
 
-dt_regularized.fit(X_train, y_train)
+print("Training samples:", X_train.shape[0])
+print("Testing samples:", X_test.shape[0])
 
-train_acc_reg = accuracy_score(y_train, dt_regularized.predict(X_train))
-test_acc_reg = accuracy_score(y_test, dt_regularized.predict(X_test))
+# =========================
+# 6. Train Gaussian Naïve Bayes Model
+# =========================
+from sklearn.naive_bayes import GaussianNB
 
-print("\nRegularized Tree")
-print("Training Accuracy:", train_acc_reg)
-print("Testing Accuracy:", test_acc_reg)
+gnb = GaussianNB()
+gnb.fit(X_train, y_train)
 
-# ================================
-# CONFUSION MATRIX
-# ================================
+print("Gaussian Naïve Bayes Model Trained Successfully")
 
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+# =========================
+# 7. Make Predictions
+# =========================
+y_pred = gnb.predict(X_test)
 
-# Predictions using regularized model
-y_pred_reg = dt_regularized.predict(X_test)
+print("Prediction Completed Successfully")
 
-cm = confusion_matrix(y_test, y_pred_reg)
+# Optional: View first 10 predictions
+print("\nFirst 10 Predictions:")
+for i in range(10):
+    print("Predicted:", y_pred[i], "Actual:", y_test[i])
+    
+# =========================
+# 8. Model Evaluation
+# =========================
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-print("\nConfusion Matrix:")
-print(cm)
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
+f1 = f1_score(y_test, y_pred, average='weighted')
 
-# Plot Confusion Matrix
-disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-disp.plot()
-plt.title("Confusion Matrix - Regularized Tree")
-plt.show()
+print("\nModel Performance")
+print("Accuracy :", round(accuracy, 4))
+print("Precision:", round(precision, 4))
+print("Recall   :", round(recall, 4))
+print("F1 Score :", round(f1, 4))
 
-# ================================
-# TREE STRUCTURE PLOT
-# ================================
+# =========================
+# 10. Analyze Misclassified Examples
+# =========================
+import numpy as np
 
-from sklearn.tree import plot_tree
+misclassified_indices = np.where(y_test != y_pred)[0]
 
-plt.figure(figsize=(15,10))
+print("\nNumber of Misclassified Samples:", len(misclassified_indices))
 
-plot_tree(
-    dt_regularized,
-    feature_names=X.columns,
-    class_names=["Rejected", "Approved"],
-    filled=True
+for i in misclassified_indices:
+    print("\nFeatures:", X_test[i])
+    print("Actual   :", iris.target_names[y_test[i]])
+    print("Predicted:", iris.target_names[y_pred[i]])
+    
+    
+# =========================
+# Decision Boundary Plot
+# =========================
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+
+# Use only 2 features
+X_two = df[['petal length (cm)', 'petal width (cm)']].values
+y_two = df['species'].values
+
+X_train2, X_test2, y_train2, y_test2 = train_test_split(
+    X_two, y_two, test_size=0.2, random_state=42
 )
 
-plt.title("Decision Tree Structure (Regularized)")
+model2 = GaussianNB()
+model2.fit(X_train2, y_train2)
+
+# Create meshgrid
+x_min, x_max = X_two[:, 0].min() - 1, X_two[:, 0].max() + 1
+y_min, y_max = X_two[:, 1].min() - 1, X_two[:, 1].max() + 1
+
+xx, yy = np.meshgrid(
+    np.arange(x_min, x_max, 0.02),
+    np.arange(y_min, y_max, 0.02)
+)
+
+Z = model2.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+plt.contourf(xx, yy, Z, alpha=0.3)
+plt.scatter(X_two[:, 0], X_two[:, 1], c=y_two, edgecolor='k')
+plt.xlabel('Petal Length')
+plt.ylabel('Petal Width')
+plt.title('Decision Boundary - Gaussian Naïve Bayes')
 plt.show()
+
+# =========================
+# Confusion Matrix
+# =========================
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+cm = confusion_matrix(y_test, y_pred)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.title("Confusion Matrix - Gaussian NB")
+plt.show()
+
+# =========================
+# Probability Distribution Plots
+# =========================
+import seaborn as sns
+
+features = df.columns[:-1]  # exclude species column
+
+for feature in features:
+    plt.figure()
+    for species in df['species'].unique():
+        sns.kdeplot(
+            df[df['species'] == species][feature],
+            label=f"Class {species}"
+        )
+    plt.title(f"Distribution of {feature}")
+    plt.legend()
+    plt.show()
